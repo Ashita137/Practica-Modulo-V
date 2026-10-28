@@ -1,0 +1,104 @@
+------Práctica 3------
+-Parte 1: Verificación Inicial y Preparación de Red (Ambos Nodos)
+date
+ip a
+
+-Parte 2: Instalación de Apache (HTTPD) (Ambos Nodos)
+[En el Nodo 1]:
+sudo dnf install httpd -y
+[En el Nodo 2]:
+sudo dnf install httpd -y
+
+-Parte 3: Creación de Páginas Web Personalizadas
+[En el Nodo 1]:
+sudo nano /var/www/html/index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YO SOY UN POLLITO AMARILLO</title>
+</head>
+<body style="background-color: #edebff; text-align: center; padding-top: 100px;">
+    <h1>Servidor 1 (Maestro)</h1>
+    <p>2026-1078</p>
+</body>
+</html>
+
+[En el Nodo 2]:
+sudo nano /var/www/html/index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YO SOY UN POLLITO AMARILLO</title>
+</head>
+<body style="background-color: #edebff; text-align: center; padding-top: 100px;">
+    <h1>Servidor 2 (Respaldo)</h1>
+    <p>2026-1078</p>
+</body>
+</html>
+
+-Parte 4: Habilitación y Verificación de Servicios y Red (Ambos Nodos)
+[En el Nodo 1 y 2]:
+sudo systemctl start httpd
+sudo systemctl enable httpd
+sudo systemctl status httpd
+sudo systemctl status firewalld
+ip a
+
+-Parte 5: Instalación y Configuración de Keepalived
+[En el Nodo 1 y 2]:
+sudo dnf install keepalived -y
+sudo nano /etc/keepalived/keepalived.conf
+
+#Configuracion para keepalived
+global_defs {
+    router_id NODO1
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface ens33
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+
+    virtual_ipaddress {
+        192.168.126.125/24
+    }
+}
+
+
+global_defs {
+    router_id NODO2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface ens33
+    virtual_router_id 51
+    priority 50
+    advert_int 1
+
+    virtual_ipaddress {
+        192.168.126.125/24
+    }
+}
+
+-Parte 6: Inicio de Keepalived y Pruebas de Conectividad
+[En el Nodo 1]:
+sudo systemctl start keepalived
+sudo systemctl status keepalived
+
+[General / Terminal Externa]:
+ping 192.168.122.121
+
+-Parte 7: Pruebas de Resiliencia y Conmutación por Fallo (Failover)
+[En el Nodo 1]:
+sudo reboot
+
+[En el Nodo 2]:
+sudo systemctl status keepalived
+
+[General / Terminal Externa]:
+ping 192.168.122.122
