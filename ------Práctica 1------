@@ -1,0 +1,44 @@
+------Práctica 1------
+-Parte 1: Preparación del Nodo 1 (Origen)
+date
+cd Desktop/
+mkdir syncCarpeta
+cd syncCarpeta/
+touch sync{001..100}.txt
+ls
+cd ..
+cd ..
+pwd
+
+-Parte 2: Preparación del Nodo 2 (Destino)
+ip a
+pwd
+
+-Parte 3: Configuración de Sincronización y Automatización en el Nodo 1
+rsync -avz /home/amoises/Desktop/syncCarpeta/ amoises@192.168.122.15:/home/amoises/Desktop/sync_nodo2
+nano rsync.sh
+
+#!/bin/bash
+rsync -avz /home/amoises/Desktop/syncCarpeta/ amoises@192.168.122.15:/home/amoises/Desktop/sync_nodo2
+chmod +x rsync.sh
+pwd
+crontab -e
+
+* * * * * /home/usuario/Desktop/rsync.sh
+
+-Parte 4: Autenticación SSH sin contraseña (Nodo 1)
+ssh-keygen
+ssh-copy-id amoises@192.168.122.15
+ssh amoises@192.168.122.15
+exit
+
+-Parte 5: Verificación de la Sincronización
+[En el Nodo 1]:
+cd syncCarpeta/
+touch prueba_final.txt
+[En el Nodo 2]:
+ls
+ls pr
+cd ..
+ls sync_nodo2/
+ls
