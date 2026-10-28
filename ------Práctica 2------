@@ -1,0 +1,62 @@
+------Práctica 2------
+-Parte 1: Verificación de Red y Configuración Inicial (Ambos Nodos)
+[En el Nodo 1]:
+date
+ip a
+[En el Nodo 2]:
+ip a
+
+-Parte 2: Configuración de Hostnames y Paquetes (Ambos Nodos)
+[En el Nodo 1]:
+sudo nano /etc/hosts
+
+192.168.122.14 nodo1.cluster.lan nodo1
+192.168.122.15 nodo2.cluster.lan nodo2
+
+sudo dnf repolist --all
+sudo dnf install pacemaker corosync pcs -y
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+sudo passwd hacluster
+
+[En el Nodo 2]:
+sudo nano /etc/hosts
+
+192.168.122.14 nodo1.cluster.lan nodo1
+192.168.122.15 nodo2.cluster.lan nodo2
+
+sudo dnf install pacemaker corosync pcs -y
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+sudo passwd hacluster
+
+-Parte 3: Inicialización del Servicio de Gestión (Ambos Nodos)
+[En el Nodo 1]:
+sudo systemctl start pcsd
+[En el Nodo 2]:
+sudo systemctl start pcsd
+
+-Parte 4: Autenticación, Creación y Configuración del Clúster (Nodo 1)
+sudo pcs host auth nodo1 nodo2
+sudo pcs cluster setup pollosAmarillos nodo1 nodo2 --start --enable
+sudo pcs property set stonith-enabled=false
+sudo pcs property set no-quorum-policy=ignore
+sudo pcs resource create VIP_pollito ocf:heartbeat:IPaddr2 ip=192.168.122.122 op monitor interval=5s
+ping -c 4 192.168.122.122
+
+-Parte 5: Verificación del Estado del Clúster
+[En el Nodo 1]:
+sudo pcs status
+[En el Nodo 2]:
+sudo pcs status
+
+-Parte 6: Pruebas de Resiliencia y Conmutación por Error (Failover)
+ping 192.168.122.122
+[En el Nodo 1]:
+sudo reboot
+
+nmcli connection show
+nmcli connection down enp1s0
+
+[En el Nodo 2]:
+sudo pcs status
